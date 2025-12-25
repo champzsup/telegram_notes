@@ -1,0 +1,6 @@
+telethon
+openai-whisper
+torch
+google-generativeai
+notion-client
+python-dotenv
