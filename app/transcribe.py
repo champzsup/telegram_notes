@@ -42,7 +42,7 @@ def batch_transcribe(downloads_folder, transcripts_folder, logger):
     model = load_model()
 
     for file in sorted(os.listdir(downloads_folder)):
-        if not file.lower().endswith((".ogg", ".opus", ".aac", ".mp3", ".wav")):
+        if not file.lower().endswith((".ogg", ".opus", ".aac", ".mp3", ".wav", "oga")):
             continue
 
         audio_path = os.path.join(downloads_folder, file)
