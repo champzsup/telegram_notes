@@ -1,12 +1,16 @@
 import whisper
 import os
+import logging
 
+logger = logging.getLogger(__name__)
 
 def load_model():
+    logger.info("Loading Whisper model (small)...")
     print("Loading Whisper model (small)...")
     return whisper.load_model("small")
 
 def transcribe_ogg(model, file_path):
+    logger.info(f"Transcribing {file_path} ...")
     print(f"Transcribing {file_path} ...")
 
     result = model.transcribe(
@@ -31,9 +35,10 @@ def save_transcript(text, audio_file_path, transcripts_folder):
     with open(save_path, "w", encoding="utf-8") as f:
         f.write(text)
 
+    logger.info(f"Saved transcript → {save_path}")
     print(f"Saved transcript → {save_path}")
 
-def batch_transcribe(downloads_folder, transcripts_folder):
+def batch_transcribe(downloads_folder, transcripts_folder, logger):
     model = load_model()
 
     for file in sorted(os.listdir(downloads_folder)):
@@ -53,7 +58,5 @@ def batch_transcribe(downloads_folder, transcripts_folder):
             text = transcribe_ogg(model, audio_path)
             save_transcript(text, audio_path, transcripts_folder)
         except Exception as e: 
+            logger.info(f"Failed to transcribe {file}: {e}")
             print(f"Failed to transcribe {file}: {e}")
-
-if __name__ == "__main__":
-    batch_transcribe()

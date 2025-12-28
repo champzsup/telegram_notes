@@ -17,15 +17,14 @@ logger = logging.getLogger(__name__)
 
 
 CHAT_ID = "-1002416274269"
-TOPIC_TITLE = "Lecture Topic Name"
+TOPIC_TITLE = "Vital Signs"
 START_ID = 5233
 END_ID = 5640
 
 
 async def run_pipeline():
     try:
-        print("=== STEP 1: Download Telegram audio ===")
-        logger.info("Starting audio download from Telegram...")
+        logger.info("=== STEP 1: Download Telegram audio ===")
         await download_audio_topic(
             chat_id=CHAT_ID,
             start_id=START_ID,
@@ -35,8 +34,7 @@ async def run_pipeline():
         )
         
         
-        print("=== STEP 2: Transcribe audio ===")
-        logger.info("Starting transcription of audio files...")
+        logger.info("=== STEP 2: Transcribe audio ===")
         batch_transcribe(
             downloads_folder=AUDIO_DIR,
             transcripts_folder=TRANSCRIPTS_DIR,
@@ -44,8 +42,7 @@ async def run_pipeline():
         )
 
 
-        print("=== STEP 3: Summarize transcripts ===")
-        logger.info("Starting Summarization")
+        logger.info("=== STEP 3: Summarize transcripts ===")
         process_topic_summarization(
             topic_title=TOPIC_TITLE,
             transcripts_folder=TRANSCRIPTS_DIR,
@@ -54,12 +51,10 @@ async def run_pipeline():
         )
 
 
-        print("=== STEP 4: Upload to Notion ===")
-        logger.info("Uploading summarized notes to Notion....")
+        logger.info("=== STEP 4: Upload to Notion ===")
         upload_to_notion(TOPIC_TITLE, notes_folder=NOTES_DIR, logger=logger)
 
-        logger.info("Pipeline completed successfully!")
-        print("=== PIPELINE COMPLETE ===")
+        logger.info("=== PIPELINE COMPLETE ===")
 
     except Exception as e:
         logger.error(f"Pipeline failed: {e}", exc_info=True)

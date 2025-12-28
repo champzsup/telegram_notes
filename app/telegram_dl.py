@@ -1,9 +1,12 @@
 from telethon import TelegramClient
 import os
+import logging
 from config import API_ID, API_HASH, TELEGRAM_SESSION_PATH
 
 
 client = TelegramClient(TELEGRAM_SESSION_PATH, API_ID, API_HASH)
+
+logger = logging.getLogger(__name__)
 
 def is_audio_message(message):
     if message.voice:
@@ -33,7 +36,8 @@ def rename_to_message_id(path, message_id):
     os.rename(path, new_path)
     return new_path
 
-async def download_audio_topic(chat_id, start_id, end_id, download_folder):
+async def download_audio_topic(chat_id, start_id, end_id, download_folder, logger):
+    logger.info("Starting Telegram Audio Download ...")
     os.makedirs(download_folder, exist_ok=True)
 
     async for message in client.iter_messages(
@@ -46,15 +50,12 @@ async def download_audio_topic(chat_id, start_id, end_id, download_folder):
             continue
 
         if already_downloaded(message.id, download_folder):
-            print(f"Already exists: {message.id}")
+            logger.info(f"Already exists: {message.id}")
             continue
 
         downloaded_path = await message.download_media(file=download_folder)
         if downloaded_path:
             final_path = rename_to_message_id(downloaded_path, message.id)
-            print(f"Downloaded: {final_path}")
+            logger.info(f"Downloaded: {final_path}")
 
-    print("All audio files downloaded.")
-
-with client:
-    client.loop.run_until_complete(download_audio_topic())
+    logger.info("All audio files downloaded")

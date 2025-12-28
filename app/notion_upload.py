@@ -1,11 +1,14 @@
 import os
 import re
 from notion_client import Client
-from config import NOTION_API_KEY, NOTION_PARENT_PAGE_ID
+from config import NOTION_API_KEY, NOTION_PAGE_ID
+import logging
 
 # === CONFIG ===
 notion = Client(auth=NOTION_API_KEY)
 
+# === LOGGER ===
+logger = logging.getLogger(__name__)
 
 # === 1. Read summarized notes ===
 def read_notes_file(topic_title, notes_folder):
@@ -113,13 +116,12 @@ def markdown_to_notion_blocks(md_text):
     return blocks
 
 # === 3. Upload to Notion ===
-def upload_to_notion(topic_title, notes_folder):
+def upload_to_notion(topic_title, notes_folder, logger, batch_size=100):
     md_text = read_notes_file(topic_title, notes_folder)
     blocks = markdown_to_notion_blocks(md_text)
 
-    # 1. Create page (title only)
     page = notion.pages.create(
-        parent={"page_id": NOTION_PARENT_PAGE_ID},
+        parent={"page_id": NOTION_PAGE_ID},
         properties={
             "title": [{
                 "type": "text",
@@ -129,19 +131,13 @@ def upload_to_notion(topic_title, notes_folder):
     )
 
     page_id = page["id"]
-    print(f"Created Notion page for '{topic_title}' (Page ID: {page_id})")
+    logger.info(f"Created Notion page for '{topic_title}' (Page ID: {page_id})")
 
-    # 2. Append blocks in chunks of 100
-    for i in range(0, len(blocks), 100):
+    for i in range(0, len(blocks), batch_size):
         notion.blocks.children.append(
             block_id=page_id,
-            children=blocks[i:i + 100]
+            children=blocks[i:i + batch_size]
         )
 
-    print(f"Uploaded {len(blocks)} blocks to Notion.")
+    logger.info(f"Uploaded {len(blocks)} blocks to Notion.")
     return page_id
-
-# === Example usage ===
-if __name__ == "__main__":
-    topic_title = "Example"
-    upload_to_notion(topic_title)
