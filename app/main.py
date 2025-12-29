@@ -1,4 +1,3 @@
-import os
 import asyncio
 import logging
 from telethon import TelegramClient
@@ -39,25 +38,25 @@ async def run_pipeline():
                 logger=logger
             )
                 
-            # logger.info("=== STEP 2: Transcribe audio ===")
-            # batch_transcribe(
-            #     downloads_folder=AUDIO_DIR,
-            #     transcripts_folder=TRANSCRIPTS_DIR,
-            #     logger=logger
-            # )
+            logger.info("=== STEP 2: Transcribe audio ===")
+            batch_transcribe(
+                downloads_folder=AUDIO_DIR,
+                transcripts_folder=TRANSCRIPTS_DIR,
+                logger=logger
+            )
 
 
-            # logger.info("=== STEP 3: Summarize transcripts ===")
-            # process_topic_summarization(
-            #     topic_title=TOPIC_TITLE,
-            #     transcripts_folder=TRANSCRIPTS_DIR,
-            #     notes_folder=NOTES_DIR,
-            #     logger=logger
-            # )
+            logger.info("=== STEP 3: Summarize transcripts ===")
+            process_topic_summarization(
+                topic_title=TOPIC_TITLE,
+                transcripts_folder=TRANSCRIPTS_DIR,
+                notes_folder=NOTES_DIR,
+                logger=logger
+            )
 
 
-            # logger.info("=== STEP 4: Upload to Notion ===")
-            # upload_to_notion(TOPIC_TITLE, notes_folder=NOTES_DIR, logger=logger)
+            logger.info("=== STEP 4: Upload to Notion ===")
+            upload_to_notion(TOPIC_TITLE, notes_folder=NOTES_DIR, logger=logger)
 
             logger.info("=== PIPELINE COMPLETE ===")
 
