@@ -19,15 +19,15 @@ logger = logging.getLogger(__name__)
 client = TelegramClient(TELEGRAM_SESSION_PATH, API_ID, API_HASH)
 
 CHAT_ID = -1002416274269
-TOPIC_TITLE = "Cardio-vascular System"
-START_ID = 5746
-END_ID = 6012
+TOPIC_TITLE = "Pharmacology for Cardio-Vascular System"
+START_ID = 6028
+END_ID = 6039
 
 
 async def run_pipeline():
     try:
         async with client:
-            print("Logged in!")
+            logger.info("Telegram Client Started with exixting session")
 
             logger.info("=== STEP 1: Download Telegram audio ===")
             await download_audio_topic(client,

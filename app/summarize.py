@@ -2,13 +2,23 @@ import os
 import re
 import logging
 import google.generativeai as genai
+import time
+from google.api_core.exceptions import ResourceExhausted
 from config import GEMINI_API_KEY
+from collections import deque
+
 
 # === CONFIG ===
 genai.configure(api_key=GEMINI_API_KEY)
 
 # === LOGGER ===
 logger = logging.getLogger(__name__)
+
+# === RATE LIMITING CONG ===
+REQUESTS_PER_MINUTE = 5
+WINDOW_SECONDS = 60
+
+_request_times = deque()
 
 # === CHUNKING ===
 def chunk_text(text, max_chars=12000):
@@ -41,6 +51,36 @@ def merge_transcripts(transcript_folder):
 
     return merged_text.strip()
 
+# === Hit Rate Limit ===
+def generate_with_rate_limit(model, prompt, logger):
+    while True:
+        now = time.time()
+
+        while _request_times and now - _request_times[0] > WINDOW_SECONDS:
+            _request_times.popleft()
+
+        # If limit reached, wait until window clears
+        if len(_request_times) >= REQUESTS_PER_MINUTE:
+            sleep_for = WINDOW_SECONDS - (now - _request_times[0]) + 1
+            logger.warning(f"Rate limit reached. Sleeping {int(sleep_for)}s")
+            time.sleep(sleep_for)
+            continue
+
+        try:
+            response = model.generate_content(
+                prompt,
+                generation_config={
+                    "temperature": 0.0,
+                    "max_output_tokens": 16000
+                }
+            )
+            _request_times.append(time.time())
+            return response
+
+        except ResourceExhausted:
+            # Safety net (should rarely happen now)
+            logger.warning("Unexpected quota hit. Sleeping 60s")
+            time.sleep(60)
 
 # === 2. Summarize using Gemini (chunk-aware) ===
 def summarize_notes_gemini(raw_text, topic_title):
@@ -89,15 +129,9 @@ Transcript content below is part {idx} of {len(chunks)}.
 Return only the reorganized notes in clean, Notion-compatible Markdown.
 """
 
-        response = model.generate_content(
-            prompt,
-            generation_config={
-                "temperature": 0.0,
-                "max_output_tokens": 16000
-            }
-        )
-
+        response = generate_with_rate_limit(model, prompt, logger)
         outputs.append(response.text.strip())
+
 
     # Join chunks with spacing to avoid heading collisions
     return "\n\n".join(outputs)
